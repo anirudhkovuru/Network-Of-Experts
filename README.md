@@ -1,6 +1,6 @@
 # Network of Errors
 
-##How to run
+## How to run
 `python3 train_generalist.py`
 
 Running this will train the generalist part of our model, print the training and testing accuracies and save the model 
@@ -115,7 +115,7 @@ the Generalist and NofE architecture.
 
 ## Results
 
-####Generalist
+#### Generalist
 
 After training the generalist, we tested its accuracy, and achieved results = 50.11% (basically 1
 out of 2 classes were put in the correct specialty). The specialties we got (with K=10) are:-
