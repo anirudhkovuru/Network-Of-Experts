@@ -47,36 +47,7 @@ def get_new_specialties(classes,conf_matrix):
 class CNNGeneralist(nn.Module):
     def __init__(self):
         super(CNNGeneralist, self).__init__()
-        # self.features = nn.Sequential(
-        #     # nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
-        #     # nn.ReLU(inplace=True),
-        #     # nn.MaxPool2d(kernel_size=3, stride=2),
-        #     # nn.Conv2d(64, 192, kernel_size=5, padding=2),
-        #     # nn.ReLU(inplace=True),
-        #     # nn.MaxPool2d(kernel_size=3, stride=2),
-        #     # nn.Conv2d(192, 384, kernel_size=3, padding=1),
-        #     # nn.ReLU(inplace=True),
-        #     # nn.Conv2d(384, 256, kernel_size=3, padding=1),
-        #     # nn.ReLU(inplace=True),
-        #     # nn.Conv2d(256, 256, kernel_size=3, padding=1),
-        #     # nn.ReLU(inplace=True),
-        #     # nn.MaxPool2d(kernel_size=3, stride=2),
-        #
-        #     # nn.LocalResponseNorm(2),
-        #
-        #     # nn.LocalResponseNorm(2),
-        #
-        # )
-        # self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
-        # self.classifier = nn.Sequential(
-        #     nn.Dropout(),
-        #     nn.Linear(64 * 5, paramK)
-        #     # nn.ReLU(inplace=True),
-        #     # nn.Dropout(),
-        #     # nn.Linear(100, 1),
-        #     # nn.ReLU(inplace=True),
-        #     # nn.Linear(1024, paramK),
-        # )
+
         self.layer1 = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=5),  # w=28*28
             nn.ReLU(inplace=True),
@@ -145,10 +116,6 @@ if __name__ == '__main__':
     dataiter = iter(trainloader)
     images, labels = dataiter.next()
 
-    # show images
-    # imshow(torchvision.utils.make_grid(images))
-    # print labels
-    # print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
     net = CNNGeneralist()
     # net = models.alexnet()
@@ -181,13 +148,13 @@ if __name__ == '__main__':
 
     # print(specialties)
     # print(lmapping)
-    PATH = './Model/cifar_net.pth'
+    PATH = '../Model/cifar_net.pth'
 
     test = False
 #
     if test:
         net.load_state_dict(torch.load(PATH))
-        with open('./Model/specs.jsons', 'r') as f:
+        with open('../Model/specs.jsons', 'r') as f:
             specialties = json.load(f)
         for k, v in specialties.items():
             for l in v:
@@ -282,9 +249,9 @@ if __name__ == '__main__':
             # conf_matrix = confusion_matrix(y_true, y_pred, labels=classes, normalize='true')
         print('Finished Training')
         print("Saving Model")
-        PATH = './Model/cifar_net.pth'
+        PATH = '../Model/cifar_net.pth'
         torch.save(net.state_dict(), PATH)
-        with open('./Model/specs.jsons', 'w') as f:
+        with open('../Model/specs.jsons', 'w') as f:
             json.dump(specialties, f)
 
     print("Specialties: ",specialties)

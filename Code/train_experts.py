@@ -133,10 +133,10 @@ if __name__ == '__main__':
     specialties = {}
 
     net = CNNGeneralist()
-    PATH = './cifar_net.pth'
+    PATH = '../Model/cifar_net.pth'
 
     net.load_state_dict(torch.load(PATH))
-    with open('./Model/specs.jsons', 'r') as f:
+    with open('../Model/specs.jsons', 'r') as f:
         specialties = json.load(f)
     for k, v in specialties.items():
         for l in v:
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     test = False
 
     if test:
-        PATH2 = './Model/nofe.pth'
+        PATH2 = '../Model/nofe.pth'
         checkpoint = torch.load(PATH)
         net.load_state_dict(checkpoint['gen'])
         for i, exp in enumerate(experts):
@@ -225,7 +225,7 @@ if __name__ == '__main__':
         # running_loss = 0.0
         print("Training of NofE Done!")
         print("Saving Model")
-        PATH = './Model/nofe.pth'
+        PATH = '../Model/nofe.pth'
         saved = {}
         saved['gen'] = net.state_dict()
         for i,exp in enumerate(experts):
