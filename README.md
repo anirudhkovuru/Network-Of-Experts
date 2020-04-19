@@ -27,6 +27,20 @@ python3 train_experts.py
 ```
 and we will have trained the NofE model and saved the model features and specialty mappings.
 
+
+In order to run the KNN experiment run the following
+
+```
+python3 knn_setup.py
+python3 knn_alexnet.py
+```
+
+This will generate the nearest neighbour mappings in the form of the two NPY files one for the 
+[experts](./Model/nn_experiment.npy) and one for the [base model](./Model/nn_base.npy) which we can then use to conduct 
+the experiment. Run the following to do so
+
+`python3 knn_experiment.py`
+
 ## The idea behind the Model
 
 Our project is to implement this paper. 
@@ -49,7 +63,7 @@ discriminate coarse categories but lacks the specialist eye to differentiate fin
 categories that look alike. Becoming an __*expert*__ in any of the aforementioned domains involves time-consuming practical 
 training aimed at specializing our visual system to recognize the subtle features that differentiate the given classes.
 
-So our model trains a **Generalist** to discrimate coarse categories and create specialists, and for each specialist we
+So our model trains a **Generalist** to discriminate coarse categories and create specialists, and for each specialist we
 train an expert that can differentiate fine categories that look alike.
 
 ## Method (or How we implemented the model)
@@ -138,11 +152,25 @@ After training the experts, and combining them with our generalist to build our 
 architecture, we achieved accuracy of 48.26% in classification. This is similar to the accuracy
 presented in the paper(56.1%) with K=10.
 
+#### KNN Experiment
+
+We perform an NN search on the feature vectors defined by the last convolutional layer of both our NofE model and the 
+base AlexNet model. It is observed that mostly the images which are retrieved from the experts model, match the class of 
+our input image but the same cannot be said for the images retrieved using the base model. Even in the case of there not 
+being perfect matches using the experts model. All the matches that are found are of related classes (kangaroo shows up 
+for camel query) and belong to same set of specialities defined by our experts.
+
+
+The first image is the query image, the middle three correspond to results from our experts model and the final three 
+correspond to results from our base AlexNet model.
+![A few example queries](Model/knn.png)
+
 
 ## Libraries Used
 
 - torch
 - torchvision
+- scikit-learn
 - Numpy
 - Pickle
 - JSON
