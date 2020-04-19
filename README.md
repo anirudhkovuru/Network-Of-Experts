@@ -1,4 +1,4 @@
-# Network of Errors
+# Network of Experts
 
 ## How to run
 `python3 train_generalist.py`
