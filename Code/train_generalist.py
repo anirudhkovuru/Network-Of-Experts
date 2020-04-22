@@ -14,13 +14,11 @@ import torchvision.models as models
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# print(device)
+
 paramK = 10
 def compute_confusion_matrix(classes,trueclass, pred):
     result = np.zeros((len(classes), paramK))
     for i in range(len(pred)):
-        # print(trueclass[i])
-        # print(pred[i])
         result[trueclass[i]][pred[i]] += 1
     return result
 
@@ -44,10 +42,29 @@ def get_new_specialties(classes,conf_matrix):
         specialties[maxind].append(randclass)
         cselect.remove(randclass)
     return lmapping, specialties
+
+class CNNGeneralistResNet(nn.Module):
+    def __init__(self):
+        super(CNNGeneralistResNet, self).__init__()
+        resnet = models.resnet50()
+        modules = list(resnet.children())[:-1]
+        self.resnet = nn.Sequential(*modules)
+        # self.fc1 = nn.Linear(65536,4096)
+        self.drop_out = nn.Dropout()
+        self.fc2 = nn.Linear(512, paramK)
+
+    def forward(self, x):
+        out = self.resnet(x)
+        out = out.reshape(out.size(0), -1)
+        # out = torch.transpose(x,0,1)
+        out = self.drop_out(out)
+        # out = self.fc1(out)
+        out = self.fc2(out)
+        return out
+
 class CNNGeneralist(nn.Module):
     def __init__(self):
         super(CNNGeneralist, self).__init__()
-
         self.layer1 = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=5),  # w=28*28
             nn.ReLU(inplace=True),
@@ -67,7 +84,7 @@ class CNNGeneralist(nn.Module):
         )
         self.drop_out = nn.Dropout()
 
-        self.fc1 = nn.Linear(3136, paramK)
+        self.fc1 = nn.Linear(7744, paramK)
         # self.fc2 = nn.Linear(784, paramK)
 
     def forward(self, x):
@@ -95,8 +112,8 @@ def imshow(img):
 
 if __name__ == '__main__':
     transform = transforms.Compose([
-        transforms.Resize(128),
-        transforms.CenterCrop(96),
+        # transforms.Resize(160),
+        transforms.CenterCrop(28),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
@@ -115,10 +132,20 @@ if __name__ == '__main__':
     # print(trainsize)
     dataiter = iter(trainloader)
     images, labels = dataiter.next()
+    net = None
+    flag = "res"
+    if flag == "c100":
+        net = CNNGeneralist()
 
+    elif flag == "alex":
+        net = models.alexnet()
+        classifier = list(net.classifier.children())
+        net.classifier = nn.Sequential(*classifier[:-1])
+        net.classifier.add_module(
+            '6', nn.Linear(classifier[-1].in_features, paramK))
+    elif flag == "res":
+        net = CNNGeneralistResNet()
 
-    net = CNNGeneralist()
-    # net = models.alexnet()
     net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -148,21 +175,32 @@ if __name__ == '__main__':
 
     # print(specialties)
     # print(lmapping)
-    PATH = '../Model/cifar_net.pth'
+
 
     test = False
-#
+    PATH = './Model/cifar_net.pth'
+    if flag == "alex":
+        PATH = './Model/alex_gen.pth'
+    elif flag == 'res':
+        PATH = './Model/resnet_gen.pth'
+    PATHspec = './Model/specs.jsons'
+    if flag == "alex":
+        PATHspec = './Model/alexspecs.jsons'
+    elif flag == 'res':
+        PATHspec = './Model/resnetspecs.jsons'
+
     if test:
         net.load_state_dict(torch.load(PATH))
-        with open('../Model/specs.jsons', 'r') as f:
+        with open(PATHspec, 'r') as f:
             specialties = json.load(f)
         for k, v in specialties.items():
             for l in v:
                 lmapping[l] = int(k)
+
         print("Model loaded successfully!")
     else:
         print("Training Generalist...")
-        for alternation in range(20):
+        for alternation in range(15):
             print(alternation, "alternation")
             running_loss = 0.0
             for epoch in range(10):  # loop over the dataset multiple times
@@ -185,7 +223,7 @@ if __name__ == '__main__':
                     # print statistics
                     running_loss += loss.item()
                     # print(i)
-                    # if i % 2000 == 1999:  # print every 2000 mini-batches
+
                 print('[%d epochs] loss: %.3f' %
                     (epoch + 1, running_loss))
                         # running_loss = 0.0
@@ -249,9 +287,10 @@ if __name__ == '__main__':
             # conf_matrix = confusion_matrix(y_true, y_pred, labels=classes, normalize='true')
         print('Finished Training')
         print("Saving Model")
-        PATH = '../Model/cifar_net.pth'
+
         torch.save(net.state_dict(), PATH)
-        with open('../Model/specs.jsons', 'w') as f:
+
+        with open(PATHspec, 'w') as f:
             json.dump(specialties, f)
 
     print("Specialties: ",specialties)
